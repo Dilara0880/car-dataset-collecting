@@ -2,7 +2,7 @@
 .env/
 
 .vscode/
-.downloaded_files/
+downloaded_files/
 
 *.pyc
 __pycache__/
@@ -21,5 +21,5 @@ runs/
 results/
 weights/
 
-images/
-.datasets/
+images*/
+datasets/

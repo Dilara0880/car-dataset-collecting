@@ -10,6 +10,7 @@ import re
 import json
 
 from typing import Any
+from ultralytics import YOLO
 
 
 # Configuration of logger
@@ -22,7 +23,7 @@ logging.basicConfig(
 )
 
 class CarParser:
-    def __init__(self, driver) -> None:
+    def __init__(self, driver, model) -> None:
         """
         Initializes the CarParser object.
         """
@@ -30,7 +31,8 @@ class CarParser:
         self.base_url = "https://platesmania.com"
         self.url = "https://platesmania.com/al/"
         self.driver = driver    
-        self.json_data = {}    
+        self.json_data = {}   
+        self.model = model 
 
 
     def get_bfsoup(self, link, sleep_time=0) -> Any:
@@ -159,10 +161,10 @@ class CarParser:
         return plate_number
     
 
-    def save2json(self, soup, img_link, img_url, main_img_url, gen_img_url) -> None:
+    def save2json(self, soup, img_link, img_url, main_img_url, gen_img_url, bbox) -> None:
 
         """ 
-        saves parsed data to JSON file
+        Updates JSON data with parsed data.
         """
 
         link_text = self.get_link_text(soup)
@@ -176,12 +178,34 @@ class CarParser:
                 "main_img": main_img_url,
                 "generated_img": gen_img_url,
                 "place_meta": place_meta,
-                "plate_number": plate_number
+                "plate_number": plate_number,
+                "bbox": bbox
             },
         }
 
         self.json_data.update(json_object)
         return
+
+
+    @staticmethod
+    def detect_plate(img_dir, model) -> str:
+        """
+        Detects bbox of number plate on main image using pretrained YOLO model.
+
+        Returns: bbox -- "x y w h" -- coordinates of number plate.
+        """
+
+        main_image = [img for img in os.listdir(img_dir) if img.startswith('real')][0]
+        img_path = os.path.join(img_dir, main_image)
+
+        result_predict = model.predict(source = img_path, imgsz=(640))
+        
+        bbox = ''
+        if result_predict and result_predict[0]:
+            bbox_numpy = result_predict[0].boxes.xywh.numpy()[0]
+            bbox = ' '.join(str(int(num)) for num in bbox_numpy)
+
+        return bbox            
 
 
     def parse(self) -> None:
@@ -201,7 +225,7 @@ class CarParser:
             while True:
                 page_url = f'{gallery_link}&start={page_num-1}' if page_num > 1 else gallery_link
 
-                img_type_dir = f'images/al-ctype-{gallery_link.split('=')[-1]}'
+                img_type_dir = f'images1/al-ctype-{gallery_link.split('=')[-1]}'
                 self.make_dir(img_type_dir)
                 json_file = f'{img_type_dir}-meta.json'
                 page_soup = self.get_bfsoup(page_url)
@@ -213,24 +237,28 @@ class CarParser:
                 for img_link in img_links:
                     if not img_link.find('img', class_='img-responsive center-block'):
                         continue
+
+                    if img_link['href'] in self.json_data:
+                        logging.info(f'Объект с ID {img_id} уже записан.')
+                        continue
+
                     img_url = f'{self.base_url}{img_link['href']}'
                     img_id = img_link['href'].replace('/', '_')
+
                     img_dir = os.path.join(img_type_dir, img_id)
 
                     img_soup = self.get_bfsoup(img_url)
 
-                    new_dir = self.make_dir(img_dir)
-                    if not new_dir:
-                        logging.info(f'Директория с ID {img_id} уже была создана')
-                        continue
+                    self.make_dir(img_dir)
 
                     main_img = self.save_image(img_dir, img_soup, 'real', "img-responsive center-block") 
                     generated_img = self.save_image(img_dir, img_soup, 'generated', "img-responsive center-block margin-bottom-20")
                     if not main_img:
                         logging.error(f'Ошибка при загрузке страницы {img_id}.')
                         continue
-
-                    self.save2json(img_soup, img_link, img_url, main_img, generated_img)
+                    
+                    bbox = self.detect_plate(img_dir, self.model)
+                    self.save2json(img_soup, img_link, img_url, main_img, generated_img, bbox)
 
                     logging.info(f'{img_id} -- успешно')
                     with open(json_file, 'w') as file:
@@ -246,14 +274,13 @@ class CarParser:
         return
 
 
-# Create and configure a driver instance
-def create_driver():
-    driver = Driver(uc=True, headless=True)
-    return driver
-
-
-
 if __name__ == "__main__":
-    driver = create_driver()
-    carParser = CarParser(driver)
+
+    # Initialize and configure a driver instance
+    driver = Driver(uc=True, headless=True)
+
+    # Initialize and YOLO model
+    model = YOLO("best-model.pt") 
+
+    carParser = CarParser(driver, model)
     carParser.parse()
