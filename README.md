@@ -11,6 +11,8 @@ JSON object:
 
 <img width="672" alt="image" src="https://github.com/user-attachments/assets/956e9c15-d31f-4317-b049-d65b1ea42418">
 
+Bbox format -- x y w h, **where x y -- coordinates of bbox's center**.
+
 Parsing is headless and autamated, as Seleniumbase undetected Driver solves web-site's captchas.
 ```
   driver = Driver(uc=True, headless=True)
@@ -52,7 +54,6 @@ Approaches for plate detection:
 The model trained on a dataset of parsed 316 images (4 types + no labels) and announced in CVAT. 
 The [notebook of train](https://github.com/Dilara0880/car-dataset-parsing/blob/main/model-train.ipynb) (with examples of using of YOLO model before and after train).
 
-
 # Installation
 
 To run this project, you'll need to set up your environment. 
@@ -83,6 +84,8 @@ In parsing.logging will logged all information about parsed id of cars and pages
 
 <img width="707" alt="image" src="https://github.com/user-attachments/assets/8e5ed34f-aa52-4710-b2a1-eeefb5e6fa91">
 
+***
+
 # Examples
 1. Web-site data:
 
@@ -103,6 +106,8 @@ Parsed data:
 Image with plate's bbox:
 
 <img width="487" alt="image" src="https://github.com/user-attachments/assets/ba547bb5-59c9-4b94-b4bb-41fbe9db284a">
+
+***
 
 2. Web-site data:
 <img width="574" alt="image" src="https://github.com/user-attachments/assets/b9a2c827-9c00-466c-9ba6-bfdba8a071da">
