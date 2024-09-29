@@ -63,9 +63,10 @@ To run this project, you'll need to set up your environment.
   cd car-dataset-parsing
   ```
 
-2. Create environment:
+2. Create and activate environment:
 ```
 python -m venv .venv
+source .venv/bin/activate
 ```
    
 3. Install the required dependencies:
