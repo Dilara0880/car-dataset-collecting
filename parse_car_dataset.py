@@ -199,7 +199,7 @@ class CarParser:
         img_path = os.path.join(img_dir, main_image)
 
         result_predict = model.predict(source = img_path, imgsz=(640))
-        
+
         bbox = ''
         if result_predict and result_predict[0]:
             bbox_numpy = result_predict[0].boxes.xywh.numpy()[0]
@@ -225,7 +225,7 @@ class CarParser:
             while True:
                 page_url = f'{gallery_link}&start={page_num-1}' if page_num > 1 else gallery_link
 
-                img_type_dir = f'images1/al-ctype-{gallery_link.split('=')[-1]}'
+                img_type_dir = f'images/al-ctype-{gallery_link.split('=')[-1]}'
                 self.make_dir(img_type_dir)
                 json_file = f'{img_type_dir}-meta.json'
                 page_soup = self.get_bfsoup(page_url)
