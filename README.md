@@ -88,7 +88,10 @@ In parsing.logging will logged all information about parsed id of cars and pages
 ***
 
 # Examples
-1. Web-site data:
+
+### 1. **Partial result in [sample output directory](https://github.com/Dilara0880/car-dataset-collecting/tree/main/sample)**
+
+### 2. Web-site data:
 
 <img width="578" alt="image" src="https://github.com/user-attachments/assets/54a95f68-6a40-441c-9ae9-7d9cae93f805">
 
@@ -110,7 +113,7 @@ Image with plate's bbox:
 
 ***
 
-2. Web-site data:
+### 3. Web-site data:
 <img width="574" alt="image" src="https://github.com/user-attachments/assets/b9a2c827-9c00-466c-9ba6-bfdba8a071da">
 
 Parsed data:
@@ -129,6 +132,9 @@ Parsed data:
 Image with plate's bbox:
 
 <img width="457" alt="image" src="https://github.com/user-attachments/assets/f035425a-8733-4eee-88d6-a71de83de497">
+
+
+
 
 
 
