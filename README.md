@@ -65,7 +65,7 @@ To run this project, you'll need to set up your environment.
 
 2. Create and activate environment:
 ```
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 ```
    
@@ -75,7 +75,7 @@ pip install -r requirements.txt
 ```
 4. Run the main script:
 ```
-python parse_car_dataset.py
+python3 parse_car_dataset.py
 ```
 
 # Usage 
