@@ -45,6 +45,7 @@ class CarParser:
         time.sleep(sleep_time)
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
+
         return soup
 
 
@@ -219,27 +220,34 @@ class CarParser:
 
         gallery_links = self.get_galery_links()
         for gallery_link in gallery_links:
+
+            img_type_dir = f'images/al-ctype-{gallery_link.split('=')[-1]}'
+            self.make_dir(img_type_dir)
+            json_file = f'{img_type_dir}-meta.json'            
+            
+            # in case data partially parsed
+            if os.path.exists(json_file):
+                with open(json_file, 'r') as file:
+                    self.json_data = json.load(file) 
+            
             page_num = 1
 
-            # breaks on a page with no images
+            # breaks on a page with no car images
             while True:
                 page_url = f'{gallery_link}&start={page_num-1}' if page_num > 1 else gallery_link
 
-                img_type_dir = f'images/al-ctype-{gallery_link.split('=')[-1]}'
-                self.make_dir(img_type_dir)
-                json_file = f'{img_type_dir}-meta.json'
                 page_soup = self.get_bfsoup(page_url)
 
                 img_links = page_soup.find_all('a', href=pattern)
                 if not page_soup.find_all('img', class_='img-responsive center-block'):
                     break
-
+                
                 for img_link in img_links:
                     if not img_link.find('img', class_='img-responsive center-block'):
                         continue
 
                     if img_link['href'] in self.json_data:
-                        logging.info(f'Объект с ID {img_id} уже записан.')
+                        logging.info(f'Объект с ID {img_link['href']} уже записан.')
                         continue
 
                     img_url = f'{self.base_url}{img_link['href']}'
@@ -249,8 +257,13 @@ class CarParser:
 
                     img_soup = self.get_bfsoup(img_url)
 
-                    self.make_dir(img_dir)
+                    # to load a page with captcha
+                    if not img_soup.find('img', class_="img-responsive center-block"):
+                        img_soup = self.get_bfsoup(img_url, sleep_time=5)
 
+                    self.make_dir(img_dir)
+                    
+                    # parse and save images
                     main_img = self.save_image(img_dir, img_soup, 'real', "img-responsive center-block") 
                     generated_img = self.save_image(img_dir, img_soup, 'generated', "img-responsive center-block margin-bottom-20")
                     if not main_img:
