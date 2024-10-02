@@ -209,6 +209,27 @@ class CarParser:
         return bbox            
 
 
+    def get_pages(self, gallery_link):
+
+        """
+        Recursively gets all gallery links and saves them to self.pages
+        """
+        pattern = re.compile(r'^gallery.php(?!.*#).*$')
+
+        soup = self.get_bfsoup(gallery_link)
+        pagination = soup.find('ul', class_='pagination')
+        page_links = pagination.find_all('a', href=pattern)
+        pages = [page_link['href'] for page_link in page_links if page_link['href'] not in self.pages]
+
+        if not pages:
+            return
+        
+        self.pages.update(pages)
+        self.get_pages(f'{self.url}{pages[-2]}')
+
+        return 
+
+
     def parse(self) -> None:
 
         """
@@ -230,12 +251,10 @@ class CarParser:
                 with open(json_file, 'r') as file:
                     self.json_data = json.load(file) 
             
-            page_num = 1
+            self.pages = set([gallery_link])
+            self.get_pages(gallery_link)
 
-            # breaks on a page with no car images
-            while True:
-                page_url = f'{gallery_link}&start={page_num-1}' if page_num > 1 else gallery_link
-
+            for page_url in sorted(self.pages):
                 page_soup = self.get_bfsoup(page_url)
 
                 img_links = page_soup.find_all('a', href=pattern)
@@ -297,3 +316,5 @@ if __name__ == "__main__":
 
     carParser = CarParser(driver, model)
     carParser.parse()
+    driver.close()
+    driver.quit()
