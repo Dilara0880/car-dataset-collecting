@@ -12,6 +12,10 @@ import json
 from typing import Any
 from ultralytics import YOLO
 
+from urllib3.exceptions import InsecureRequestWarning
+from urllib3 import disable_warnings
+
+disable_warnings(InsecureRequestWarning)
 
 # Configuration of logger
 logging.basicConfig(
@@ -251,10 +255,13 @@ class CarParser:
                 with open(json_file, 'r') as file:
                     self.json_data = json.load(file) 
             
+            logging.info(f'Считаю страницы на {gallery_link}')
             self.pages = set([gallery_link])
             self.get_pages(gallery_link)
+            logging.info(f'Найдено {len(self.pages)} страниц')
 
-            for page_url in sorted(self.pages):
+            for page in sorted(self.pages):
+                page_url = f'{self.url}{page}'
                 page_soup = self.get_bfsoup(page_url)
 
                 img_links = page_soup.find_all('a', href=pattern)
@@ -296,8 +303,7 @@ class CarParser:
                     with open(json_file, 'w') as file:
                         json.dump(self.json_data, file, indent=4, ensure_ascii=False) 
 
-                logging.info(f'{gallery_link} - {page_num} -- успешно')
-                page_num += 1
+                logging.info(f'{page_url} -- успешно')
 
             self.json_data = {}
             logging.info(f'{gallery_link} -- успешно')
